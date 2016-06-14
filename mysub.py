@@ -1,4 +1,7 @@
 #encoding=utf-8
+import sys
+sys.path.append('plugins/mysub')
+
 import json
 import time
 import config.config as conf
@@ -7,7 +10,7 @@ from lib.http import do_get, do_post
 from lib.db import Mysql
 
 #SQLMAP API服务地址
-sqlmapapiurl = "http://127.0.0.1:9462"
+sqlmapapiurl = conf.sqlmapapi_url
 
 #日志记录
 def log(tag, message):
@@ -45,8 +48,14 @@ def send2sqlmap(url, user_agent='', cookie='', body=''):
 def is_need_sqli_test(url, body):
     parsedurl = urlparse(url)
     if parsedurl.query == '' and body == '':
-        return False
-    return True
+        return False    
+    f = open('plugins/mysub/config/targetdomain', 'r')
+    domains = f.readlines()
+    f.close()
+    for one in domains:
+        if one[:-1] in parsedurl.netloc:
+            return True
+    return False
 
 #sql注入测试模块
 def sqli_test(req):
