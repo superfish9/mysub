@@ -6,6 +6,7 @@ import json
 import base64
 import time
 import config.config as conf
+from urlparse import urlparse
 from http import do_get, do_post
 from db import Mysql
 
@@ -22,56 +23,83 @@ class SqliManage(object):
         self.sqlmapapiurl = sqlmapapiurl #SQLMAP API服务地址
         self.adminid = adminid #SQLMAP API adminid
         self.mysql = Mysql(conf.db_host, conf.db_port, conf.db_user, conf.db_pass, conf.db_name)
-        self._handle_result()
         
     #获取当前任务列表
     def _get_task_list(self):
-        log('_get_task_list', 'begin _get_task_list')
         checkurl = self.sqlmapapiurl + '/admin/' + self.adminid + '/list';
         resp = json.loads(do_get(checkurl))
-        log('_get_task_list', 'end _get_task_list')
         return resp['tasks']
     
     #漏洞结果入库
     def _item2db(self, taskid):
-        log('_item2db', 'begin _item2db')
         dataurl = self.sqlmapapiurl + '/scan/' + taskid + '/data';
         resp = json.loads(do_get(dataurl))
+        data = resp['data']
         if data != []:
             dset = "data='%s', sqli=1" % base64.b64encode(str(data[0]))
         else:
             dset = "sqli=0"
         where = "taskid='%s'" % taskid
         self.mysql.update('sub_sqli', dset, where)   
-        log('_item2db', 'end _item2db')
         return
     
     #删除已完成的任务
     def _delete_task(self, taskid):
-        log('_delete_task', 'begin _delete_task')
         deleteurl = self.sqlmapapiurl + '/task/' + taskid + '/delete'
         do_get(deleteurl)
-        log('_delete_task', 'end _delete_task')
         return
     
     #从数据库中删除无漏洞条目
     def _delete_no_sqli(self):
-        log('_delete_no_sqli', 'begin _delete_no_sqli')
         self.mysql.delete('sub_sqli', 'sqli=0')
-        log('_delete_no_sqli', 'end _delete_no_sqli')
         return
     
     #处理任务结果
-    def _handle_result(self):
-        log('handle_result', 'begin handle_result')
+    def handle_result(self):
         tasklist = self._get_task_list()
         for taskid, state in tasklist.items():
             if state == 'terminated':
                 self._item2db(taskid)
                 self._delete_task(taskid)
         self._delete_no_sqli()
-        log('handle_result', 'end handle_result')
         return
+    
+    #sqli任务初入库
+    def _task2db(self, taskid, url, body):
+        self.mysql.insert('sub_sqli', ('taskid', 'url', 'body'), (taskid, url, body))
+        return    
+    
+    #创建SQLI任务
+    def send2sqlmap(self, url, user_agent='', cookie='', body=''):
+        newurl = self.sqlmapapiurl + '/task/new'
+        resp = json.loads(do_get(newurl))
+        taskid = resp['taskid']
+        log('send2sqlmap', 'task is created. id : %s' % taskid)
+        data = {}
+        data['url'] = url
+        if cookie != '' and cookie != []:
+            data['cookie'] = cookie[0]
+        data['headers'] = 'User-Agent: ' + user_agent[0]
+        if body != '':
+            data['data'] = body
+        starturl = self.sqlmapapiurl + '/scan/' + taskid + '/start'
+        do_post(starturl, user_agent, cookie, json.dumps(data))
+        log('send2sqlmap', 'task is started. id : %s' % taskid)
+        self._task2db(taskid, url, body)
+        return    
+    
+    #检测该请求是否需要进行SQLI测试
+    def is_need_sqli_test(self, url, body):
+        parsedurl = urlparse(url)
+        if parsedurl.query == '' and body == '':
+            return False    
+        f = open('plugins/mysub/config/targetdomain', 'r')
+        domains = f.readlines()
+        f.close()
+        for one in domains:
+            if one[:-1] in parsedurl.netloc:
+                return True
+        return False    
     
     #获取漏洞结果
     def get_sqli_result(self):
