@@ -1,0 +1,13 @@
+<html>
+  <head>
+    <title>sqli</title>
+  </head>
+  <body>
+    {% for one in sqliresult %}
+    <p>url:{{one[0]}}</p>
+    <p>body:{{one[1]}}</p>
+    <p>data:{{one[2]}}</p>
+    <p>------------------------------------------------------</p>
+    {% endfor %}
+  </body>
+</html>
