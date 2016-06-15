@@ -1,10 +1,14 @@
 #encoding=utf-8
+import sys
+sys.path.append('..')
+
 import MySQLdb
 import time
+import config.config as conf
 
 #日志记录
 def log(tag, message):
-    f = open('/tmp/mysub/db.log', 'a+')
+    f = open(conf.db_log, 'a+')
     f.write('[%s] %s: %s\n' % (time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time())), tag, message))
     f.close()
     return

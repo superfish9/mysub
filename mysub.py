@@ -14,7 +14,7 @@ sqlmapapiurl = conf.sqlmapapi_url
 
 #日志记录
 def log(tag, message):
-    f = open('/tmp/mysub/mysub.log', 'a+')
+    f = open(conf.mysub_log, 'a+')
     f.write('[%s] %s: %s\n' % (time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time())), tag, message))
     f.close()
     return

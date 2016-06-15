@@ -1,17 +1,17 @@
 #encoding=utf-8
 import sys
+sys.path.append('..')
+
 import json
 import base64
 import time
+import config.config as conf
 from http import do_get, do_post
 from db import Mysql
 
-sys.path.append('..')
-import config.config as conf
-
 #日志记录
 def log(tag, message):
-    f = open('/tmp/mysub/sqlimanage.log', 'a+')
+    f = open(conf.sqlimanage_log, 'a+')
     f.write('[%s] %s: %s\n' % (time.strftime("%Y-%m-%d %H:%M:%S",time.localtime(time.time())), tag, message))
     f.close()
     return
