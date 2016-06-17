@@ -26,8 +26,8 @@ def sqli_test(req):
     if req.method == 'CONNECT':
         url = 'https://' + url
     if sqlimanage.is_need_sqli_test(url, body):
-        log('sqli_test', 'target url : %s' % url)
         sqlimanage.send2sqlmap(url, user_agent, cookie, body)
+        log('sqli_test', '%s' % url)
     return
 
 def proxy_mangle_request(req):
