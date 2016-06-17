@@ -116,6 +116,12 @@ class SqliManage(object):
             self._delete_task(taskid)
         self.mysql.delete('sub_sqli', 'sqli not in (1)')
         return
+    
+    #清库
+    def clean_db(self):
+        self.mysql.delete('sub_sqli')
+        return
+    
         
     
 
