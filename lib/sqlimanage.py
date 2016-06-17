@@ -107,14 +107,14 @@ class SqliManage(object):
         
     #获取正在进行的任务列表
     def get_scaning_list(self):
-        return self.mysql.select(('url', 'body'), 'sub_sqli', 'sqli not in (0, 1)')
+        return self.mysql.select(('url', 'body'), 'sub_sqli', 'sqli is NULL')
     
     #强行善后
     def tasks_clean(self):
         tasklist = self._get_task_list()
         for taskid in tasklist:
             self._delete_task(taskid)
-        self.mysql.delete('sub_sqli', 'sqli not in (1)')
+        self.mysql.delete('sub_sqli', 'sqli is NULL or sqli=0')
         return
     
     #清库
