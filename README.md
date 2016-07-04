@@ -16,9 +16,10 @@ CREATE TABLE `sub_sqli` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `taskid` varchar(100) NOT NULL,
   `url` varchar(256) NOT NULL,
-  `body` varchar(2048) DEFAULT NULL,
+  `body` varchar(8192) DEFAULT NULL,
   `sqli` int(11) DEFAULT NULL,
-  `data` varchar(4096) DEFAULT NULL,
+  `data` varchar(8192) DEFAULT NULL,
+  `hash` varchar(50) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1
 

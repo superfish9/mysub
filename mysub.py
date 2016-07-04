@@ -24,9 +24,8 @@ def sqli_test(req):
     body = req.body
     url = req.url
     if req.method == 'CONNECT':
-        url = 'https://' + url
-    if sqlimanage.is_need_sqli_test(url, body):
-        sqlimanage.send2sqlmap(url, user_agent, cookie, body)
+        url = 'https://' + url  
+    if sqlimanage.send2sqlmap(url, user_agent, cookie, body):
         log('sqli_test', '%s' % url)
     return
 

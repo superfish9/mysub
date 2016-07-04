@@ -5,6 +5,7 @@ sys.path.append('..')
 import json
 import base64
 import time
+import hashlib
 import config.config as conf
 from urlparse import urlparse
 from http import do_get, do_post
@@ -49,11 +50,6 @@ class SqliManage(object):
         do_get(deleteurl)
         return
     
-    #从数据库中删除无漏洞条目
-    def _delete_no_sqli(self):
-        self.mysql.delete('sub_sqli', 'sqli=0')
-        return
-    
     #处理任务结果
     def handle_result(self):
         tasklist = self._get_task_list()
@@ -61,16 +57,18 @@ class SqliManage(object):
             if state == 'terminated':
                 self._item2db(taskid)
                 self._delete_task(taskid)
-        self._delete_no_sqli()
         return
     
     #sqli任务初入库
-    def _task2db(self, taskid, url, body):
-        self.mysql.insert('sub_sqli', ('taskid', 'url', 'body'), (taskid, url, body))
+    def _task2db(self, taskid, url, body, psw):
+        self.mysql.insert('sub_sqli', ('taskid', 'url', 'body', 'hash'), (taskid, url, body, psw))
         return    
     
     #创建SQLI任务
     def send2sqlmap(self, url, user_agent='', cookie='', body=''):
+        flag, psw = self._is_need_sqli_test(url, body)
+        if not flag:
+            return False
         newurl = self.sqlmapapiurl + '/task/new'
         resp = json.loads(do_get(newurl))
         taskid = resp['taskid']
@@ -83,23 +81,30 @@ class SqliManage(object):
         if body != '':
             data['data'] = body
         starturl = self.sqlmapapiurl + '/scan/' + taskid + '/start'
-        do_post(starturl, user_agent, cookie, json.dumps(data))
+        do_post(starturl, user_agent[0], cookie, json.dumps(data))
         log('send2sqlmap', 'task is started. id : %s' % taskid)
-        self._task2db(taskid, url, body)
-        return    
+        self._task2db(taskid, url, body, psw)
+        return True
     
     #检测该请求是否需要进行SQLI测试
-    def is_need_sqli_test(self, url, body):
+    def _is_need_sqli_test(self, url, body):
         parsedurl = urlparse(url)
         if parsedurl.query == '' and body == '':
-            return False    
+            return False, ''  
+        test = parsedurl.netloc + parsedurl.path + parsedurl.params + parsedurl.query
+        m = hashlib.md5()
+        m.update(test)
+        psw = m.hexdigest()
+        for one in self.mysql.select(('hash'), 'sub_sqli'):
+            if psw == one[0]:
+                return False, ''
         f = open('plugins/mysub/config/targetdomain', 'r')
         domains = f.readlines()
         f.close()
         for one in domains:
             if one[:-1] in parsedurl.netloc:
-                return True
-        return False    
+                return True, psw
+        return False, ''
     
     #获取漏洞结果
     def get_sqli_result(self):
@@ -114,7 +119,7 @@ class SqliManage(object):
         tasklist = self._get_task_list()
         for taskid in tasklist:
             self._delete_task(taskid)
-        self.mysql.delete('sub_sqli', 'sqli is NULL or sqli=0')
+        self.mysql.delete('sub_sqli', 'sqli is NULL')
         return
     
     #清库
