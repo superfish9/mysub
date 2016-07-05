@@ -91,7 +91,11 @@ class SqliManage(object):
         parsedurl = urlparse(url)
         if parsedurl.query == '' and body == '':
             return False, ''  
-        test = parsedurl.netloc + parsedurl.path + parsedurl.params + parsedurl.query + body
+        paramlist = parsedurl.query.split('&')
+        paramstring = ''
+        for param in paramlist:
+            paramstring += str(param.split('=')[0])
+        test = parsedurl.netloc + parsedurl.path + parsedurl.params + paramstring + body
         m = hashlib.md5()
         m.update(test)
         psw = m.hexdigest()
