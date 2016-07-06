@@ -16,8 +16,9 @@ def sqli():
     sqlimanage = SqliManage(conf.sqlmapapi_url, conf.admin_id)
     sqlimanage.handle_result()
     sqliresult = sqlimanage.get_sqli_result()  
+    nosqliresult = sqlimanage.get_no_sqli_result()
     sqlitesting = sqlimanage.get_scaning_list()
-    return render_template('sqli.html', sqliresult=sqliresult, sqlitesting=sqlitesting)
+    return render_template('sqli.html', sqliresult=sqliresult, nosqliresult=nosqliresult, sqlitesting=sqlitesting)
 
 @app.route('/sqli/tasks_clean')
 def sqli_tasks_clean():

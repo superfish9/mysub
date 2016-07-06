@@ -39,12 +39,15 @@ class SqliManage(object):
         if data != []:
             dset = "data='%s', sqli=1" % base64.b64encode(str(data[0]))
         else:
-            dset = "sqli=0"
+            logurl = self.sqlmapapiurl + '/scan/' + taskid + '/log';
+            resp = json.loads(do_get(logurl))
+            log = resp['log']
+            dset = "data='%s', sqli=0" % base64.b64encode(str(log))
         where = "taskid='%s'" % taskid
         self.mysql.update('sub_sqli', dset, where)   
         return
     
-    #删除已完成的任务
+    #删除任务
     def _delete_task(self, taskid):
         deleteurl = self.sqlmapapiurl + '/task/' + taskid + '/delete'
         do_get(deleteurl)
@@ -56,7 +59,6 @@ class SqliManage(object):
         for taskid, state in tasklist.items():
             if state == 'terminated':
                 self._item2db(taskid)
-                self._delete_task(taskid)
         return
     
     #sqli任务初入库
@@ -80,8 +82,11 @@ class SqliManage(object):
         data['headers'] = 'User-Agent: ' + user_agent[0]
         if body != '':
             data['data'] = body
+        if url[0:5] == 'https':
+            forcesslurl = self.sqlmapapiurl + '/option/' + taskid + '/set'
+            do_post(url=forcesslurl, data='{"forceSSL" : true}')
         starturl = self.sqlmapapiurl + '/scan/' + taskid + '/start'
-        do_post(starturl, user_agent[0], cookie, json.dumps(data))
+        do_post(url=starturl, data=json.dumps(data))
         log('send2sqlmap', 'task is started. id : %s' % taskid)
         self._task2db(taskid, url, body, psw)
         return True
@@ -113,6 +118,10 @@ class SqliManage(object):
     #获取漏洞结果
     def get_sqli_result(self):
         return self.mysql.select(('url', 'body', 'data'), 'sub_sqli', 'sqli=1')
+    
+    #获取无漏洞结果
+    def get_no_sqli_result(self):
+        return self.mysql.select(('url', 'body', 'data'), 'sub_sqli', 'sqli=0')
         
     #获取正在进行的任务列表
     def get_scaning_list(self):

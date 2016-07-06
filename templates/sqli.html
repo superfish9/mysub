@@ -18,6 +18,21 @@
 </tr>
 {% endfor %}
 </table>
+<h2>No Vul</h2>
+<table border="1">
+<tr>
+  <th>url</th>
+  <th>body</th>
+  <th>log</th>
+</tr>
+{% for three in nosqliresult %}
+<tr>
+  <th>{{three[0]}}</th>
+  <th>{{three[1]}}</th>
+  <th>{{three[2]}}</th>
+</tr>
+{% endfor %}
+</table>
 <h2>Testing</h2>
 <table border="1">
 <tr>
