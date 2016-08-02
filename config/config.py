@@ -9,7 +9,7 @@ db_name = "mysub"
 
 #SQLMAP API相关配置
 sqlmapapi_url = "http://127.0.0.1:8775"
-admin_id = "7366697368"
+admin_id = "c7cbe1e535a1d1381e0ce0d743fbb539"
 
 #日志文件位置
 mysub_log = "/tmp/mysub/mysub.log"
