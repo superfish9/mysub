@@ -25,6 +25,5 @@ CREATE TABLE `sub_sqli` (
 
 把代码目录放在proxpy代理目录中的plugin目录下，修改config/config.py中相关配置参数，在config/targetdomain文件中输入要检测的域名列表。
 
-Tips: sqlmapapi的Adminid每次都变化，可以通过修改其源码令其固定以方便操作。可令/sqlmap/lib/utils/api.py中的is_admin函数永远返回True。
 
 
