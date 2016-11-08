@@ -26,3 +26,4 @@ def do_post(url, user_agent='', cookie='', data=''):
         req.add_header('User-Agent', user_agent)
     resp = urllib2.urlopen(req)
     return resp.read()
+
