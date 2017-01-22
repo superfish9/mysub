@@ -5,7 +5,6 @@ sub..sub..
 
 python的Flask框架；
 Flask-Bootstrap插件；
-sqlmapapi；
 proxpy开源代理；
 mysql数据库。
 
